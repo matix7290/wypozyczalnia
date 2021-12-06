@@ -32,12 +32,18 @@
             alert("Nie uzupełniłeś wszystkiego!");
         }
     }
+
+    let init = async () => {
+        if (await checkLog()) {
+            window.location.replace("./#");
+        }
+    };
 </script>
 
 <section class="text-gray-600 body-font">
     <div
         class="container px-5 py-24 mx-auto flex flex-wrap flex-col items-center"
-        on:load={checkLog()}
+        on:load={init()}
     >
         <div class="w-1/4 mb-10 pr-0 flex flex-col items-start">
             <h1 class="title-font font-medium text-3xl text-gray-900">

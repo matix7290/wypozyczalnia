@@ -11,7 +11,5 @@ export default async function checkLog() {
 
     res = await res.json();
 
-    if (res) {
-        window.location.replace("./#");
-    }
+    return res;
 }

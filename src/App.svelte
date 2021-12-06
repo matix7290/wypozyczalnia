@@ -5,11 +5,12 @@
 	import Header from "./components/Header.svelte";
 	import Footer from "./components/Footer.svelte";
 	import Tailwindcss from "./Tailwindcss.svelte";
-	import Display from "./routes/Display.svelte";
+	import AllCars from "./routes/AllCars.svelte";
 	import AddItem from "./routes/AddItem.svelte";
 	import Test from "./routes/test.svelte";
 	import Register from "./routes/Register.svelte";
 	import Login from "./routes/Login.svelte";
+	import BigCar from "./routes/BigCar.svelte";
 </script>
 
 <Tailwindcss />
@@ -19,11 +20,12 @@
 <Router
 	routes={{
 		"/": Home,
-		"/display": Display,
+		"/cars": AllCars,
 		"/addData": AddItem,
 		"/test": Test,
 		"/register": Register,
 		"/login": Login,
+		"/car/:id": BigCar,
 		"*": NotFound,
 	}}
 />

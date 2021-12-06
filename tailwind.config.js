@@ -8,6 +8,11 @@ module.exports = {
     },
   },
   darkMode: false, // or 'media' or 'class'
-  theme: { extend: {}, }, variants: { extend: {}, },
+  theme: { extend: {}, }, variants: {
+    extend: {
+      opacity: ['disabled'],
+      textColor: ['disabled'],
+    },
+  },
   plugins: [],
 }
