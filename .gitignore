@@ -1,3 +1,7 @@
+# Own ignores
+.DS_Store
+public/build/
+
 # Logs
 logs
 *.log
@@ -40,7 +44,6 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
-public/build/
 
 # TypeScript v1 declaration files
 typings/
