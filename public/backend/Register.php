@@ -1,10 +1,25 @@
 <?php
 require_once 'DB.php';
 
-$sql = "SELECT id FROM users ORDER BY id DESC LIMIT 1";
+$usernames_sql = "SELECT username FROM users";
+$usernames_res = mysqli_query($connect, $usernames_sql);
+$usernames = array();
 
-$res = mysqli_query($connect, $sql);
-$id = intval(mysqli_fetch_assoc($res)['id']) + 1;
+while ($row = mysqli_fetch_assoc($usernames_res))
+    $usernames[] = $row;
+
+foreach ($usernames as $key => $value) {
+    if ($_POST['username'] === $value['username']) {
+        $response['msg'] = 'duplicated';
+        echo json_encode($response);
+        exit();
+    }
+}
+
+
+$id_sql = "SELECT id FROM users ORDER BY id DESC LIMIT 1";
+$id_res = mysqli_query($connect, $id_sql);
+$id = intval(mysqli_fetch_assoc($id_res)['id']) + 1;
 
 $house_number = intval($_POST['house_number']);
 

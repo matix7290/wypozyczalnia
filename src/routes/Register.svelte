@@ -1,11 +1,15 @@
 <script>
     import md5 from "../../scripts/md5";
     import checkLog from "../../scripts/checkLog";
+    import Text from "../components/FormInputs/Text.svelte";
+    import Password from "../components/FormInputs/Password.svelte";
+    import Email from "../components/FormInputs/Email.svelte";
+    import Tel from "../components/FormInputs/Tel.svelte";
 
     let user_info = {
             username: "",
             password: "",
-            confirm: "",
+            confirm_password: "",
             firstname: "",
             lastname: "",
             age: "",
@@ -22,14 +26,21 @@
             expiry_date: "",
             cvv2: "",
         },
+        usernames = [],
         message;
 
     let passwords_match = false;
 
-    async function register() {
+    let goTop = () => {
+        document.body.scrollTop = 0; // For Safari
+        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    };
+
+    let register = async () => {
         if (
             user_info.username &&
             user_info.password &&
+            user_info.confirm_password &&
             user_info.firstname &&
             user_info.lastname &&
             user_info.age &&
@@ -45,17 +56,22 @@
             user_info.expiry_date &&
             user_info.cvv2
         ) {
+            let password = JSON.parse(JSON.stringify(user_info.password));
+            let card_number = JSON.parse(JSON.stringify(user_info.card_number));
+            let cvv2 = JSON.parse(JSON.stringify(user_info.cvv2));
+
             user_info.password = md5(user_info.password);
-            user_info.card_number = md5(user_info.card_number);
+            user_info.card_number = md5(
+                user_info.card_number.replace(/\s/g, "")
+            );
             user_info.cvv2 = md5(user_info.cvv2);
 
             let data = new FormData();
             Object.keys(user_info).forEach((key) => {
                 data.append(key, JSON.parse(JSON.stringify(user_info[key])));
-                user_info[key] = "";
             });
 
-            const URL = "./backend/AddItem.php";
+            const URL = "./backend/Register.php";
             let res = await fetch(URL, {
                 method: "POST",
                 body: data,
@@ -63,45 +79,81 @@
             });
 
             res = await res.json();
-            message = res.msg;
-            console.log(res);
-        } else {
-            alert("Nie uzupełniłeś wszystkiego!");
-        }
-    }
 
-    let check = function () {
-        if (user_info.password !== "" && user_info.confirm === "") {
-            if (lengthChech(password.value)) {
-                document.getElementById("message").innerHTML = "";
+            if (res.msg == "failed") {
+                alert("Wystąpił błąd, spróbuj ponownie");
+            } else if (res.msg == "duplicated") {
+                user_info.password = password;
+                user_info.card_number = card_number;
+                user_info.cvv2 = cvv2;
+
+                document.getElementById("username_p").innerText =
+                    "Nazwa użytkownika zajęta";
+                goTop();
             } else {
-                document.getElementById("message").innerHTML =
-                    "Zakrótkie hasło, minimalna długość to 8 znaków";
+                window.location.replace("./#/login");
             }
         } else {
-            if (user_info.password === user_info.confirm) {
-                if (lengthChech(user_info.password)) {
-                    document.getElementById("message").innerHTML = "";
-                    passwords_match = true;
-                } else {
-                    document.getElementById("message").innerHTML =
+            errors();
+        }
+    };
+
+    let errors = () => {
+        Object.keys(user_info).forEach((key) => {
+            if (user_info[key] === "" && key !== "apartment_number") {
+                console.log(key + "_p");
+                document.getElementById(key + "_p").innerText = "Uzupełnij";
+            }
+        });
+    };
+
+    let check = () => {
+        if (user_info.password === user_info.confirm_password) {
+            if (user_info.confirm_password.length < 8) {
+                document.getElementById("confirm_password_p").innerText =
+                    "Zakrótkie hasło, minimalna długość to 8 znaków";
+                passwords_match = false;
+            } else {
+                document.getElementById("confirm_password_p").innerText = "";
+                passwords_match = true;
+            }
+        } else {
+            document.getElementById("confirm_password_p").innerText =
+                "Różne hasła";
+            passwords_match = false;
+        }
+    };
+
+    let checkValue = (name, value) => {
+        if (value === "") {
+            document.getElementById(name + "_p").innerText = "Uzupełnij";
+        } else {
+            if (name === "password" || name === "confirm_password") {
+                if (value.length < 8) {
+                    document.getElementById(name + "_p").innerText =
                         "Zakrótkie hasło, minimalna długość to 8 znaków";
                     passwords_match = false;
+                } else {
+                    document.getElementById(name + "_p").innerText = "";
+                    passwords_match = true;
                 }
+
+                check();
             } else {
-                document.getElementById("message").innerHTML = "Różne hasła";
-                passwords_match = false;
+                document.getElementById(name + "_p").innerText = "";
             }
         }
     };
 
-    function lengthChech(password) {
-        if (password.length < 8) {
-            return false;
+    let checkRegEx = (pattern, name, value) => {
+        pattern = new RegExp(pattern);
+
+        if (pattern.test(value.replace(/\s/g, ""))) {
+            document.getElementById(name + "_p").innerText = "";
         } else {
-            return true;
+            document.getElementById(name + "_p").innerText = "Popraw";
         }
-    }
+    };
 </script>
 
 <section class="text-gray-600 body-font">
@@ -121,284 +173,281 @@
             class=" bg-gray-100 rounded-lg p-8 flex flex-col w-2/3 mt-10 md:mt-0 self-center"
         >
             <div class="relative mb-4">
-                <label for="username" class="leading-7 text-sm text-gray-600"
-                    >Nazwa użytkownika</label
-                >
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
+                <Text
+                    name={"username"}
+                    placeholder={"jan_kowalski"}
+                    desc={"Nazwa użytkownika"}
                     bind:value={user_info.username}
-                    placeholder="jan_kowalski"
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+                    blur={() => {
+                        checkValue("username", user_info.username);
+                    }}
                 />
             </div>
             <div class="relative mb-4">
-                <label for="password" class="leading-7 text-sm text-gray-600"
-                    >Hasło</label
-                >
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="12345678"
+                <Password
+                    name={"password"}
+                    placeholder={"12345678"}
+                    desc={"Hasło"}
                     bind:value={user_info.password}
-                    on:keyup={() => {
+                    blur={() => {
+                        checkValue("password", user_info.password);
+                    }}
+                    keyup={() => {
                         check();
                     }}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
                 />
-            </div>
-            <div class="relative mb-4">
-                <label
-                    for="confirm_password"
-                    class="leading-7 text-sm text-gray-600"
-                    >Potwierdź hasło</label
-                >
-                <input
-                    type="password"
-                    id="confirm_password"
-                    name="confirm_password"
-                    placeholder="12345678"
-                    bind:value={user_info.confirm}
-                    on:keyup={() => {
-                        check();
-                    }}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-                <p id="message" class="text-xs mt-3 text-red-600" />
-            </div>
+                <div class="relative mb-4">
+                    <Password
+                        name={"confirm_password"}
+                        placeholder={"12345678"}
+                        desc={"Potwierdź hasło"}
+                        bind:value={user_info.confirm_password}
+                        blur={() => {
+                            checkValue(
+                                "confirm_password",
+                                user_info.confirm_password
+                            );
+                        }}
+                        keyup={() => {
+                            check();
+                        }}
+                    />
+                </div>
 
-            <p class="text-s mb-3 text-gray-600">Informacje o użytkowniku</p>
+                <p class="text-s mb-3 text-gray-600">
+                    Informacje o użytkowniku
+                </p>
+                <div class="relative mb-4">
+                    <Text
+                        name={"firstname"}
+                        placeholder={"Jan"}
+                        desc={"Imię"}
+                        bind:value={user_info.firstname}
+                        blur={() => {
+                            checkValue("firstname", user_info.firstname);
+                        }}
+                    />
+                </div>
+                <div class="relative mb-4">
+                    <Text
+                        name={"lastname"}
+                        placeholder={"Kowalski"}
+                        desc={"Nazwisko"}
+                        bind:value={user_info.lastname}
+                        blur={() => {
+                            checkValue("lastname", user_info.lastname);
+                        }}
+                    />
+                </div>
+                <div class="relative mb-4">
+                    <label for="age" class="leading-7 text-sm text-gray-600"
+                        >Wiek</label
+                    >
+                    <select
+                        id="age"
+                        name="age"
+                        bind:value={user_info.age}
+                        on:focus={checkValue("age", user_info.age)}
+                        on:change={checkValue("age", user_info.age)}
+                        class="w-full h-11 bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+                    >
+                        <option value="18" selected>18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="more">więcej niż 21</option>
+                    </select>
+                    <p id="age_p" class="text-xs mt-3 text-red-600" />
+                </div>
 
-            <div class="relative mb-4">
-                <label for="firstname" class="leading-7 text-sm text-gray-600"
-                    >Imię</label
-                >
-                <input
-                    type="text"
-                    id="firstname"
-                    name="firstname"
-                    placeholder="Jan"
-                    bind:value={user_info.firstname}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-            <div class="relative mb-4">
-                <label for="lastname" class="leading-7 text-sm text-gray-600"
-                    >Nazwisko</label
-                >
-                <input
-                    type="text"
-                    id="lastname"
-                    name="lastname"
-                    placeholder="Kowalski"
-                    bind:value={user_info.lastname}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-            <div class="relative mb-4">
-                <label for="age" class="leading-7 text-sm text-gray-600"
-                    >Wiek</label
-                >
-                <select
-                    id="age"
-                    name="age"
-                    bind:value={user_info.age}
-                    class="w-full h-11 bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                >
-                    <option value="18">18</option>
-                    <option value="19">19</option>
-                    <option value="20">20</option>
-                    <option value="21">21</option>
-                    <option value="more">więcej niż 21</option>
-                </select>
-            </div>
+                <p class="text-s mb-3 text-gray-600">Adres</p>
 
-            <p class="text-s mb-3 text-gray-600">Adres</p>
+                <div class="relative mb-4">
+                    <Text
+                        name={"street"}
+                        placeholder={"Świętokrzyska"}
+                        desc={"Ulica"}
+                        bind:value={user_info.street}
+                        blur={() => {
+                            checkValue("street", user_info.street);
+                        }}
+                    />
+                </div>
+                <div class="relative mb-4">
+                    <Text
+                        name={"house_number"}
+                        placeholder={"21"}
+                        desc={"Numer domu"}
+                        bind:value={user_info.house_number}
+                        blur={() => {
+                            checkValue("house_number", user_info.house_number);
+                        }}
+                    />
+                </div>
+                <div class="relative mb-4">
+                    <Text
+                        name={"apartment_number"}
+                        placeholder={"37"}
+                        desc={"Numer mieszkania"}
+                        bind:value={user_info.apartment_number}
+                        blur={() => {
+                            checkValue(
+                                "apartment_number",
+                                user_info.apartment_number
+                            );
+                        }}
+                    />
+                </div>
+                <div class="relative mb-4">
+                    <Text
+                        name={"city"}
+                        placeholder={"Kraków"}
+                        desc={"Miasto"}
+                        bind:value={user_info.city}
+                        blur={() => {
+                            checkValue("city", user_info.city);
+                        }}
+                    />
+                </div>
+                <div class="relative mb-4">
+                    <Text
+                        name={"postcode"}
+                        placeholder={"31-131"}
+                        desc={"Kod pocztowy"}
+                        bind:value={user_info.postcode}
+                        blur={() => {
+                            checkValue("postcode", user_info.postcode);
+                            checkRegEx(
+                                "^\\d{2}-\\d{3}$",
+                                "postcode",
+                                user_info.postcode
+                            );
+                        }}
+                    />
+                </div>
 
-            <div class="relative mb-4">
-                <label for="street" class="leading-7 text-sm text-gray-600"
-                    >Ulica</label
-                >
-                <input
-                    type="text"
-                    id="street"
-                    name="street"
-                    placeholder="Świętokrzyska"
-                    bind:value={user_info.street}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-            <div class="relative mb-4">
-                <label
-                    for="house_number"
-                    class="leading-7 text-sm text-gray-600">Numer domu</label
-                >
-                <input
-                    type="text"
-                    id="house_number"
-                    name="house_number"
-                    placeholder="21"
-                    bind:value={user_info.house_number}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-            <div class="relative mb-4">
-                <label
-                    for="apartment_number"
-                    class="leading-7 text-sm text-gray-600"
-                    >Numer mieszkania</label
-                >
-                <input
-                    type="text"
-                    id="apartment_number"
-                    name="apartment_number"
-                    placeholder="37"
-                    bind:value={user_info.apartment_number}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-            <div class="relative mb-4">
-                <label for="city" class="leading-7 text-sm text-gray-600"
-                    >Miasto</label
-                >
-                <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    placeholder="Kraków"
-                    bind:value={user_info.city}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-            <div class="relative mb-4">
-                <label for="postcode" class="leading-7 text-sm text-gray-600"
-                    >Kod pocztowy</label
-                >
-                <input
-                    type="text"
-                    id="postcode"
-                    name="postcode"
-                    placeholder="31-131"
-                    bind:value={user_info.postcode}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
+                <p class="text-s mb-3 text-gray-600">Dane kontaktowe</p>
 
-            <p class="text-s mb-3 text-gray-600">Dane kontaktowe</p>
+                <div class="relative mb-4">
+                    <Email
+                        name={"email"}
+                        placeholder={"jan.kowalski@poczta.pl"}
+                        desc={"Email"}
+                        bind:value={user_info.email}
+                        blur={() => {
+                            checkValue("email", user_info.email);
+                            checkRegEx(
+                                "^[a-zA-Z0-9.!#$%&’*+\\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$",
+                                "email",
+                                user_info.email
+                            );
+                        }}
+                    />
+                </div>
+                <div class="relative mb-4">
+                    <Tel
+                        name={"phone"}
+                        placeholder={"123456789"}
+                        desc={"Numer telefonu"}
+                        bind:value={user_info.phone}
+                        blur={() => {
+                            checkValue("phone", user_info.phone);
+                            checkRegEx("^\\d{9}$", "phone", user_info.phone);
+                        }}
+                    />
+                </div>
 
-            <div class="relative mb-4">
-                <label for="email" class="leading-7 text-sm text-gray-600"
-                    >Email</label
+                <p class="text-s mb-3 text-gray-600">Dane rozliczeniowe</p>
+
+                <div class="relative mb-4">
+                    <Text
+                        name={"owner_firstname"}
+                        placeholder={"Jan"}
+                        desc={"Imię właściciela karty"}
+                        bind:value={user_info.owner_firstname}
+                        blur={() => {
+                            checkValue(
+                                "owner_firstname",
+                                user_info.owner_firstname
+                            );
+                        }}
+                    />
+                </div>
+
+                <div class="relative mb-4">
+                    <Text
+                        name={"owner_lastname"}
+                        placeholder={"Kowalski"}
+                        desc={"Nazwisko właściciela karty"}
+                        bind:value={user_info.owner_lastname}
+                        blur={() => {
+                            checkValue(
+                                "owner_lastname",
+                                user_info.owner_lastname
+                            );
+                        }}
+                    />
+                </div>
+
+                <div class="relative mb-4">
+                    <Text
+                        name={"card_number"}
+                        placeholder={"1234 5678 1234 5678"}
+                        desc={"Numer karty"}
+                        bind:value={user_info.card_number}
+                        blur={() => {
+                            checkValue("card_number", user_info.card_number);
+                            checkRegEx(
+                                "^\\d{16}$",
+                                "card_number",
+                                user_info.card_number
+                            );
+                        }}
+                    />
+                </div>
+
+                <div class="relative mb-4">
+                    <Text
+                        name={"expiry_date"}
+                        placeholder={"08/24"}
+                        desc={"Data ważności"}
+                        bind:value={user_info.expiry_date}
+                        blur={() => {
+                            checkValue("expiry_date", user_info.expiry_date);
+                            checkRegEx(
+                                "^(0[1-9]|1[0-2])\\/\\d{2}$",
+                                "expiry_date",
+                                user_info.expiry_date
+                            );
+                        }}
+                    />
+                </div>
+
+                <div class="relative mb-4">
+                    <Text
+                        name={"cvv2"}
+                        placeholder={"123"}
+                        desc={"CVV2"}
+                        bind:value={user_info.cvv2}
+                        blur={() => {
+                            checkValue("cvv2", user_info.cvv2);
+                            checkRegEx("^\\d{3}$", "cvv2", user_info.cvv2);
+                        }}
+                    />
+                </div>
+
+                <button
+                    class="text-white bg-green-500 border-0 py-2 px-8 focus:outline-none hover:bg-green-600 rounded text-lg"
+                    on:click={() => {
+                        errors();
+                        if (passwords_match) {
+                            register();
+                        } else {
+                            goTop();
+                        }
+                    }}>Zarejestruj</button
                 >
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="jan.kowalski@poczta.pl"
-                    bind:value={user_info.email}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
             </div>
-            <div class="relative mb-4">
-                <label for="phone" class="leading-7 text-sm text-gray-600"
-                    >Numer telefonu</label
-                >
-                <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="123456789"
-                    bind:value={user_info.phone}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-
-            <p class="text-s mb-3 text-gray-600">Dane rozliczeniowe</p>
-
-            <div class="relative mb-4">
-                <label
-                    for="owner_firstname"
-                    class="leading-7 text-sm text-gray-600"
-                    >Imię właściciela karty</label
-                >
-                <input
-                    type="text"
-                    id="owner_firstname"
-                    name="owner_firstname"
-                    placeholder="Jan"
-                    bind:value={user_info.owner_firstname}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-
-            <div class="relative mb-4">
-                <label
-                    for="owner_lastname"
-                    class="leading-7 text-sm text-gray-600"
-                    >Nazwisko właściciela karty</label
-                >
-                <input
-                    type="text"
-                    id="owner_lastname"
-                    name="owner_lastname"
-                    placeholder="Kowalski"
-                    bind:value={user_info.owner_lastname}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-
-            <div class="relative mb-4">
-                <label for="card_number" class="leading-7 text-sm text-gray-600"
-                    >Numer karty</label
-                >
-                <input
-                    type="text"
-                    id="card_number"
-                    name="card_number"
-                    placeholder="1234 5678 1234 5678"
-                    bind:value={user_info.card_number}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-
-            <div class="relative mb-4">
-                <label for="expiry_date" class="leading-7 text-sm text-gray-600"
-                    >Data ważności</label
-                >
-                <input
-                    type="text"
-                    id="expiry_date"
-                    name="expiry_date"
-                    placeholder="12/23"
-                    bind:value={user_info.expiry_date}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-
-            <div class="relative mb-4">
-                <label for="cvv2" class="leading-7 text-sm text-gray-600"
-                    >CCV2</label
-                >
-                <input
-                    type="text"
-                    id="cvv2"
-                    name="cvv2"
-                    placeholder="123"
-                    bind:value={user_info.cvv2}
-                    class="w-full bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                />
-            </div>
-
-            <button
-                class="text-white bg-green-500 border-0 py-2 px-8 focus:outline-none hover:bg-green-600 rounded text-lg"
-                on:click={() => {
-                    if (passwords_match) {
-                        register();
-                    }
-                }}>Zarejestruj</button
-            >
         </div>
     </div>
 </section>
