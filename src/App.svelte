@@ -11,6 +11,7 @@
 	import Register from "./routes/Register.svelte";
 	import Login from "./routes/Login.svelte";
 	import BigCar from "./routes/BigCar.svelte";
+	import UserReservation from "./routes/user/UserReservation.svelte";
 </script>
 
 <Tailwindcss />
@@ -26,6 +27,7 @@
 		"/register": Register,
 		"/login": Login,
 		"/car/:id": BigCar,
+		"/user/reservstions": UserReservation,
 		"*": NotFound,
 	}}
 />

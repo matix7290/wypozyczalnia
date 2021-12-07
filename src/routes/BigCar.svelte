@@ -8,7 +8,7 @@
     let correct = false;
     let start_date = "";
     let finish_date = "";
-    let logged;
+    let logged, overdueReservationNumber;
 
     let names = {
         transmission: ["Skrzynia biegów", ""],
@@ -19,7 +19,7 @@
         number_of_doors: ["Liczba drzwi", ""],
     };
 
-    let getReservationNumber = async () => {
+    let getReservationsNumber = async () => {
         const URL = "./backend/CountReservations.php";
         let data = new FormData();
         data.append("id", params.id);
@@ -35,8 +35,15 @@
         return res;
     };
 
+    let getOverdueReservationsNumber = async () => {
+        const URL = "./backend/CountOverdueReservations.php";
+        let res = await fetch(URL);
+        res = await res.json();
+        return res;
+    };
+
     let getItem = async () => {
-        const URL = "./backend/GetOne.php";
+        const URL = "./backend/GetOneCar.php";
         let data = new FormData();
         data.append("id", params.id);
 
@@ -48,7 +55,8 @@
 
         res = await res.json();
 
-        let number = await getReservationNumber();
+        let reservationNumber = await getReservationsNumber();
+        overdueReservationNumber = await getOverdueReservationsNumber();
 
         res.data = Object.keys(res.data).map((key) => [
             names[key][0],
@@ -56,7 +64,7 @@
             names[key][1],
         ]);
 
-        res.data.push(["Ilość rezerwacji", number, ""]);
+        res.data.push(["Ilość rezerwacji", reservationNumber, ""]);
 
         return res;
     };
@@ -70,7 +78,6 @@
     };
 
     let checkSet = () => {
-        console.log(start_date, finish_date);
         if (start_date !== "" && finish_date !== "") {
             setted = true;
         } else {
@@ -83,10 +90,10 @@
     let check = () => {
         if (setted) {
             if (start_date > finish_date) {
-                document.getElementById("message").innerText = "Popraw daty";
+                document.getElementById("error").innerText = "Popraw daty";
                 correct = false;
             } else {
-                document.getElementById("message").innerText = "";
+                document.getElementById("error").innerText = "";
                 correct = true;
             }
         }
@@ -108,16 +115,22 @@
         res = await res.json();
 
         if (res.msg === "successfully") {
-            window.location.replace("./#");
+            document.getElementById("success").innerText =
+                "Dokonano rezerwacji";
+            setTimeout(() => {
+                window.location.replace("./#/user/reservstions");
+            }, 1500);
         } else {
-            document.getElementById("message").innerText =
+            document.getElementById("error").innerText =
                 "Błąd rezerwacji. Spróbuj ponownie";
         }
     };
+
+    window.onload = init();
 </script>
 
 <section class="text-gray-600 body-font overflow-hidden">
-    <div class="container px-5 py-24 mx-auto" on:load={init()}>
+    <div class="container px-5 pt-12 pb-24 mx-auto">
         {#await getItem()}
             loading...
         {:then item}
@@ -147,17 +160,29 @@
                             class="title-font font-medium text-2xl text-gray-900"
                             >{item.info.price} zł/dzień</span
                         >
-                        {#if logged}
+                        {#if !logged}
+                            <button
+                                class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
+                                disabled>Rezerwuj</button
+                            >
+                            <p class="text-xs mt-3 text-red-600 text-right">
+                                Aby złożyć rezezwacje musisz być zalogowany
+                            </p>
+                        {:else if overdueReservationNumber != 0}
+                            <button
+                                class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
+                                disabled>Rezerwuj</button
+                            >
+                            <p class="text-xs mt-3 text-red-600 text-right">
+                                Aby złożyć rezezwacje musisz oddać wszystkie
+                                auta po terminie
+                            </p>
+                        {:else}
                             <button
                                 class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 focus:outline-none hover:bg-green-600 rounded"
                                 on:click={() => {
                                     clicked = !clicked;
                                 }}>Rezerwuj</button
-                            >
-                        {:else}
-                            <button
-                                class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
-                                disabled>Rezerwuj</button
                             >
                         {/if}
                     </div>
@@ -194,8 +219,12 @@
                         </div>
                         <div class="flex mt-5">
                             <p
-                                id="message"
+                                id="error"
                                 class="text-xs mt-3 text-red-600 text-right"
+                            />
+                            <p
+                                id="success"
+                                class="text-xs mt-3 text-green-600 text-right"
                             />
                         </div>
                         <div class="flex mt-5">
@@ -213,7 +242,7 @@
                 <img
                     alt="ecommerce"
                     class="lg:w-1/2 w-full lg:max-h-96 h-64 mt-28 object-cover object-center rounded"
-                    src="https://dummyimage.com/700x700"
+                    src="https://dummyimage.com/600x300"
                 />
             </div>
         {/await}

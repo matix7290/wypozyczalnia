@@ -160,12 +160,14 @@
             window.location.replace("./#");
         }
     };
+
+    document.onload = init();
 </script>
 
 <section class="text-gray-600 body-font">
     <div
-        class="container px-5 py-24 mx-auto flex flex-wrap flex-col items-center"
-        on:load={init()}
+        id="load"
+        class="container px-5 pt-12 pb-24 mx-auto flex flex-wrap flex-col items-center"
     >
         <div class="w-1/4 mb-10 pr-0 flex flex-col items-start">
             <h1 class="title-font font-medium text-3xl text-gray-900">
@@ -271,7 +273,7 @@
                 <div class="relative mb-4">
                     <Text
                         name={"street"}
-                        placeholder={"Świętokrzyska"}
+                        placeholder={"Papieska"}
                         desc={"Ulica"}
                         bind:value={user_info.street}
                         blur={() => {
@@ -307,7 +309,7 @@
                 <div class="relative mb-4">
                     <Text
                         name={"city"}
-                        placeholder={"Kraków"}
+                        placeholder={"Wadowice"}
                         desc={"Miasto"}
                         bind:value={user_info.city}
                         blur={() => {
@@ -318,7 +320,7 @@
                 <div class="relative mb-4">
                     <Text
                         name={"postcode"}
-                        placeholder={"31-131"}
+                        placeholder={"34-100"}
                         desc={"Kod pocztowy"}
                         bind:value={user_info.postcode}
                         blur={() => {

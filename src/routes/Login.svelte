@@ -38,12 +38,13 @@
             window.location.replace("./#");
         }
     };
+
+    document.onload = init();
 </script>
 
 <section class="text-gray-600 body-font">
     <div
-        class="container px-5 py-24 mx-auto flex flex-wrap flex-col items-center"
-        on:load={init()}
+        class="container px-5 pt-12 pb-24 mx-auto flex flex-wrap flex-col items-center"
     >
         <div class="w-1/4 mb-10 pr-0 flex flex-col items-start">
             <h1 class="title-font font-medium text-3xl text-gray-900">

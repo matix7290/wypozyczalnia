@@ -2,7 +2,7 @@
     import SmallCar from "../components/SmallCar.svelte";
 
     async function getItems() {
-        const URL = "./backend/GetAll.php";
+        const URL = "./backend/GetAllCar.php";
         let res = await fetch(URL);
         res = await res.json();
         return res;
@@ -26,22 +26,29 @@
 </script>
 
 <section class="text-gray-600 body-font">
-    <div class="container px-5 py-24 mx-auto">
+    <div class="container px-5 pt-12 pb-24 mx-auto">
         <div class="flex flex-col text-center w-full mb-20">
             <h1
                 class="sm:text-4xl text-3xl font-medium title-font mb-2 text-gray-900"
             >
-                Dane z PHP
+                Nasze pojazdy
             </h1>
             <p class="lg:w-2/3 mx-auto leading-relaxed text-base">
-                Strona wyświetla dane pobrane z api PHP
-            </p>
-            <br /> <br />
-            <p class="lg:w-2/3 mx-auto leading-relaxed text-base">
-                <input type="text" bind:value={phrase} />
+                Odjedź swoim wymażonym autem...
             </p>
             <section class="text-gray-600 body-font">
-                <div class="container px-5 py-24 mx-auto">
+                <div class="container px-5 pt-12 mx-auto flex flex-col">
+                    <p
+                        class="lg:w-full w-full h-2/3 mb-10 leading-relaxed text-base"
+                    >
+                        <input
+                            class="rounded ml-2 w-full h-8 text-center"
+                            name="filtr"
+                            type="text"
+                            placeholder="Wyszukaj"
+                            bind:value={phrase}
+                        />
+                    </p>
                     <div class="flex flex-wrap -m-4">
                         {#await filtered}
                             loading...
