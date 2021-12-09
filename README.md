@@ -18,9 +18,15 @@ cd svelte-app
 
 ## Get started
 
-Add database from db/car-sharing.sql...
+Add database...
 
-...and set its details in public/backend/DB.php file... 
+```from db/car-sharing.sql
+```
+
+...and set its details
+
+```in public/backend/DB.php file
+``` 
 
 ...then install the dependencies...
 
