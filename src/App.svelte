@@ -19,6 +19,7 @@
 	import WaitingReservation from "./routes/admin/WaitingReservation.svelte";
 	import UserManager from "./routes/admin/UserManager.svelte";
 	import EditReservation from "./routes/admin/EditReservation.svelte";
+	import Statute from "./routes/Statute.svelte";
 </script>
 
 <Tailwindcss />
@@ -42,6 +43,7 @@
 		"/admin/reservation/waiting": WaitingReservation,
 		"/admin/reservation/edit/:id": EditReservation,
 		"/admin/users": UserManager,
+		"/statute": Statute,
 		"*": NotFound,
 	}}
 />

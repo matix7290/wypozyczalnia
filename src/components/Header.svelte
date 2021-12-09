@@ -39,6 +39,8 @@
             >
             {#if data.user_type_id != 3}
                 <a class="hover:text-gray-900" href="./#/admin">Panel admina</a>
+            {:else}
+                <a class="hover:text-gray-900" href="./#/statute">Regulamin</a>
             {/if}
         </nav>
         <a

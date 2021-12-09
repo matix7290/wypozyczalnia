@@ -7,7 +7,7 @@ $response = array();
 
 
 $sql = "SELECT `reservation`.`id`, `cars`.`mark`, `cars`.`model`, `reservation`.`start_date`,
-                `reservation`.`finish_date`, `reservation_statuses`.`status_name`, `users`.`username`
+                `reservation`.`finish_date`, `reservation`.`car_id`, `reservation_statuses`.`status_name`, `users`.`username`
             FROM `reservation`
             INNER JOIN `cars`
             ON `reservation`.`car_id` = `cars`.`id`

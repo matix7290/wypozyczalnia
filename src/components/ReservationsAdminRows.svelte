@@ -47,7 +47,7 @@
                 <button
                     style="border: none;"
                     on:click={() => {
-                        callback.accept(item.id);
+                        callback.accept(item.id, item.car_id);
                     }}
                 >
                     Zatwierdź

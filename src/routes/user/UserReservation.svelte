@@ -11,7 +11,6 @@
 
     let getArchive = async () => {
         const URL = "./backend/GetArchive.php";
-        let data = new FormData();
         let res = await fetch(URL);
         res = await res.json();
 

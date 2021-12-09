@@ -70,6 +70,8 @@
 
         res = await res.json();
 
+        console.log(res);
+
         let reservationNumber = await getReservationsNumber();
         overdueReservationNumber = await getOverdueReservationsNumber();
 
@@ -193,22 +195,36 @@
                             >{item.info.price} zł/dzień</span
                         >
                         {#if !logged}
-                            <button
-                                class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
-                                disabled>Rezerwuj</button
-                            >
-                            <p class="text-xs mt-3 text-red-600 text-right">
-                                Aby złożyć rezezwacje musisz być zalogowany
-                            </p>
+                            <div class="ml-auto">
+                                <button
+                                    class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
+                                    disabled>Rezerwuj</button
+                                >
+                                <p class="text-xs mt-3 text-red-600 text-right">
+                                    Aby złożyć rezezwacje musisz być zalogowany
+                                </p>
+                            </div>
                         {:else if overdueReservationNumber != 0 && (user_type_id == 3 || user_type_id == 2)}
-                            <button
-                                class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
-                                disabled>Rezerwuj</button
-                            >
-                            <p class="text-xs mt-3 text-red-600 text-right">
-                                Aby złożyć rezezwacje musisz oddać wszystkie
-                                auta po terminie
-                            </p>
+                            <div class="ml-auto">
+                                <button
+                                    class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
+                                    disabled>Rezerwuj</button
+                                >
+                                <p class="text-xs mt-3 text-red-600 text-right">
+                                    Aby złożyć rezezwacje musisz oddać wszystkie
+                                    auta po terminie
+                                </p>
+                            </div>
+                        {:else if item.info.status_name != "avaible"}
+                            <div class="ml-auto">
+                                <button
+                                    class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
+                                    disabled>Rezerwuj</button
+                                >
+                                <p class="text-xs mt-3 text-red-600 text-right">
+                                    Samochód chwilowo niedostępny
+                                </p>
+                            </div>
                         {:else}
                             <button
                                 class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 focus:outline-none hover:bg-green-600 rounded"
@@ -249,9 +265,9 @@
                                 class="w-2/3 flex ml-auto bg-white rounded border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
                             />
                         </div>
-                        <div class="flex mt-5">
+                        <div class="flex mt-5 justify-end">
                             <p
-                                class="text-xs mt-3 text-red-600 text-right"
+                                class="text-xs mt-3 text-red-600"
                                 contenteditable="false"
                                 bind:textContent={error}
                             />
