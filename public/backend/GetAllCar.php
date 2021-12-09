@@ -8,10 +8,9 @@ $sql = 'SELECT cars.id, mark, model, vehicle_class, price
         INNER JOIN cars_statuses
         ON cars.status_id = cars_statuses.id';
 
-$result = mysqli_query($connect, $sql);
-$response = array();
-
-while ($row = mysqli_fetch_assoc($result))
-    $response[] = $row;
+$stmt = $connect->prepare($sql);
+$stmt->execute();
+$response = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$connect->close();
 
 echo json_encode($response);

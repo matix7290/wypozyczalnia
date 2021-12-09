@@ -1,6 +1,6 @@
-export default async function checkLog() {
+export default async function getSession(names) {
     let data = new FormData();
-    data.append("name", "logged");
+    data.append("names", JSON.stringify(names));
 
     let URL = "./backend/GetSession.php";
     let res = await fetch(URL, {

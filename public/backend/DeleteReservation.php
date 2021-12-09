@@ -1,14 +1,22 @@
 <?php
 require_once('DB.php');
 
-$sql = "DELETE FROM `reservation` WHERE `reservation`.`id` = $_POST[id]";
+$sql = "DELETE FROM `reservation` WHERE `reservation`.`id` = ?";
 
-$result = mysqli_query($connect, $sql);
+if (isset($_POST['id'])) {
+    $stmt = $connect->prepare($sql);
+    $stmt->bind_param("i", $_POST['id']);
+    $stmt->execute();
+    $res = $stmt->execute();
+    $connect->close();
 
-if ($result) {
-    $msg = 'successfully';
+    if ($res) {
+        $msg = 'successfully';
+    } else {
+        $msg = 'failed';
+    }
 } else {
-    $msg = 'failed';
+    $msg = 'fail';
 }
 
 $response['msg'] = $msg;

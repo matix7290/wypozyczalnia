@@ -1,40 +1,34 @@
 <script>
-    import getData from "../../scripts/getData";
+    import getSession from "../../scripts/getSession";
 
-    let logged = false;
+    let logged = true;
+    let data = { user_type_id: 3 };
     let text = "Witaj, ";
 
     async function check() {
-        logged = await getData("logged");
+        let res = await getSession(["logged"]);
+        logged = res.logged;
 
         if (logged) {
-            let firstname = await getData("firstname");
-            let lastname = await getData("lastname");
-            text += firstname + " " + lastname;
+            data = await getSession(["firstname", "lastname", "user_type_id"]);
+            text += data.firstname + " " + data.lastname;
         }
     }
 
     async function logout() {
         logged = false;
 
-        let data = new FormData();
-        data.append("name", "logged");
-        data.append("value", false);
-
-        let URL = "./backend/SetSession.php";
-        let res = await fetch(URL, {
-            method: "POST",
-            body: data,
-            mode: "no-cors",
-        });
+        const URL = "./backend/Logout.php";
+        let res = await fetch(URL);
 
         res = await res.json();
-        console.log(res);
-        location.reload();
+        window.location.replace("./#");
     }
+
+    document.onload = check();
 </script>
 
-<header class="text-gray-600 body-font" on:load={check()}>
+<header class="text-gray-600 body-font h-1/6">
     <div
         class="container mx-auto flex flex-wrap p-5 pb-0 flex-col md:flex-row items-center"
     >
@@ -43,7 +37,9 @@
             <a class="mr-5 hover:text-gray-900" href="./#/user/reservstions"
                 >Twoje rezerwacje</a
             >
-            <a class="hover:text-gray-900" href="./#">Third Link</a>
+            {#if data.user_type_id != 3}
+                <a class="hover:text-gray-900" href="./#/admin">Panel admina</a>
+            {/if}
         </nav>
         <a
             class="flex order-first lg:order-none lg:w-1/2 title-font font-medium items-center text-gray-900 lg:items-center lg:justify-center mb-4 md:mb-0"

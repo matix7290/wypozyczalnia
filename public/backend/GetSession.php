@@ -1,4 +1,11 @@
 <?php
 session_start();
 
-echo json_encode($_SESSION[$_POST['name']]);
+$names = json_decode($_POST['names']);
+$response = array();
+
+foreach ($names as $key => $name) {
+    $response[$name] = $_SESSION[$name];
+}
+
+echo json_encode($response);

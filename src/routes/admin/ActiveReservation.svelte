@@ -1,30 +1,13 @@
 <script>
-    import ReservationsRows from "../../components/ReservationsRows.svelte";
+    import ReservationsAdminRows from "../../components/ReservationsAdminRows.svelte";
     import getSession from "../../../scripts/getSession";
-
-    let user = {
-        firstname: "",
-        lastname: "",
-    };
 
     let logged = false;
 
-    let getArchive = async () => {
-        const URL = "./backend/GetArchive.php";
-        let data = new FormData();
-        let res = await fetch(URL);
-        res = await res.json();
-
-        return res;
-    };
-
     let getItems = async () => {
-        const URL = "./backend/GetReservations.php";
+        const URL = "./backend/GetAllReservations.php";
         let data = new FormData();
-        data.append(
-            "statusses",
-            JSON.stringify(["waiting", "accepted", "overdue"])
-        );
+        data.append("statusses", JSON.stringify(["accepted", "overdue"]));
 
         let res = await fetch(URL, {
             method: "POST",
@@ -34,33 +17,12 @@
 
         res = await res.json();
 
-        let archive = await getArchive();
-
-        res.archives = archive;
-
-        user.firstname = res.user.firstname;
-        user.lastname = res.user.lastname;
-
-        for (let i = 0; i < res.waiting.length; i++) {
-            res.waiting[i].status_name = "Oczekujące";
-        }
-
         for (let i = 0; i < res.accepted.length; i++) {
             res.accepted[i].status_name = "Zaakceptowane";
         }
 
         for (let i = 0; i < res.overdue.length; i++) {
             res.overdue[i].status_name = "Po terminie";
-        }
-
-        for (let i = 0; i < res.archives.length; i++) {
-            if (res.archives[i].status_name === "waiting") {
-                res.archives[i].status_name = "Anulowano";
-            } else if (res.archives[i].status_name === "overdue") {
-                res.archives[i].status_name = "Zwrócono po terminie";
-            } else {
-                res.archives[i].status_name = "Zwrócono";
-            }
         }
 
         return res;
@@ -81,6 +43,9 @@
 
         location.reload();
     };
+
+    let edit = (id) =>
+        window.location.replace("./#/admin/reservation/edit/" + id);
 
     let init = async () => {
         let res = await getSession(["logged"]);
@@ -105,6 +70,10 @@
                     >
                         <thead>
                             <tr>
+                                <th
+                                    class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100"
+                                    >Użytkownik</th
+                                >
                                 <th
                                     class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100"
                                     >Marka samochodu</th
@@ -135,29 +104,21 @@
                             {#await getItems()}
                                 loading...
                             {:then response}
-                                <ReservationsRows
-                                    data={response.waiting}
-                                    name={"Oczekujące"}
-                                    {giveBack}
-                                    {user}
-                                />
-                                <ReservationsRows
+                                <ReservationsAdminRows
                                     data={response.accepted}
                                     name={"Zaakceptowane"}
-                                    {giveBack}
-                                    {user}
+                                    callback={{
+                                        giveBack: giveBack,
+                                        edit: edit,
+                                    }}
                                 />
-                                <ReservationsRows
+                                <ReservationsAdminRows
                                     data={response.overdue}
                                     name={"Po terminie"}
-                                    {giveBack}
-                                    {user}
-                                />
-                                <ReservationsRows
-                                    data={response.archives}
-                                    name={"Archiwalne"}
-                                    {giveBack}
-                                    {user}
+                                    callback={{
+                                        giveBack: giveBack,
+                                        edit: edit,
+                                    }}
                                 />
                             {/await}
                         </tbody>

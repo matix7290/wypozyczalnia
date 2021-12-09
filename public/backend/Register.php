@@ -2,11 +2,9 @@
 require_once 'DB.php';
 
 $usernames_sql = "SELECT username FROM users";
-$usernames_res = mysqli_query($connect, $usernames_sql);
-$usernames = array();
-
-while ($row = mysqli_fetch_assoc($usernames_res))
-    $usernames[] = $row;
+$stmt = $connect->prepare($usernames_sql);
+$stmt->execute();
+$usernames = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 foreach ($usernames as $key => $value) {
     if ($_POST['username'] === $value['username']) {
@@ -18,12 +16,13 @@ foreach ($usernames as $key => $value) {
 
 
 $id_sql = "SELECT id FROM users ORDER BY id DESC LIMIT 1";
-$id_res = mysqli_query($connect, $id_sql);
-$id = intval(mysqli_fetch_assoc($id_res)['id']) + 1;
+$stmt = $connect->prepare($id_sql);
+$stmt->execute();
+$id = $stmt->get_result()->fetch_all(MYSQLI_ASSOC)[0]['id'] + 1;
 
 $house_number = intval($_POST['house_number']);
 
-$address = "INSERT INTO `addresses_details`(
+$address_sql = "INSERT INTO `addresses_details`(
     `id`,
     `street`,
     `house_number`,
@@ -31,62 +30,58 @@ $address = "INSERT INTO `addresses_details`(
     `city`,
     `postcode`
     )
-    values(
-    '$id',
-    '$_POST[street]',
-    '$house_number',";
+    values(?, ?, ?, ?, ?, ?)";
+
+$stmt = $connect->prepare($address_sql);
 
 if (intval($_POST['apartment_number'])) {
     $apartment_number = intval($_POST['apartment_number']);
-    $address = $address . "'$apartment_number',";
+    $stmt->bind_param('isiiss', $id, $_POST['street'], $house_number, $apartment_number, $_POST['city'], $_POST['postcode']);
 } else {
-    $address = $address . "NULL,";
+    $apartment_number = null;
+    $stmt->bind_param('isisss', $id, $_POST['street'], $house_number, $apartment_number, $_POST['city'], $_POST['postcode']);
 }
 
-$address = $address . "'$_POST[city]','$_POST[postcode]')";
+$address_res = $stmt->execute();
 
-$card = "INSERT INTO `cards_details` (
+$card_sql = "INSERT INTO `cards_details` (
     `id`,
     `owner_firstname`,
     `owner_lastname`,
     `card_number`,
     `expiry_date`,
     `cvv2`)
-    values(
-        '$id',
-        '$_POST[owner_firstname]',
-        '$_POST[owner_lastname]',
-        '$_POST[card_number]',
-        '$_POST[expiry_date]',
-        '$_POST[cvv2]'
-        )";
+    values(?, ?, ?, ?, ?, ?)";
+
+$stmt = $connect->prepare($card_sql);
+$stmt->bind_param('isssss', $id, $_POST['owner_firstname'], $_POST['owner_lastname'], $_POST['card_number'], $_POST['expiry_date'], $_POST['cvv2']);
+$card_res = $stmt->execute();
 
 $phone = intval($_POST['phone']);
-$contact = "INSERT INTO `contacts_details`(
+$contact_sql = "INSERT INTO `contacts_details`(
     `id`,
     `phone`,
     `email`
     )
-    values(
-    '$id',
-    '$phone',
-    '$_POST[email]'
-    )";
+    values(?, ?, ?)";
 
-$details = "INSERT INTO `users_details`(
+$stmt = $connect->prepare($contact_sql);
+$stmt->bind_param('iis', $id, $phone, $_POST['email']);
+$contact_res = $stmt->execute();
+
+$details_sql = "INSERT INTO `users_details`(
     `id`,
     `firstname`,
     `lastname`,
     `age`
     )
-    values(
-    '$id',
-    '$_POST[firstname]',
-    '$_POST[lastname]',
-    '$_POST[age]'
-    )";
+    values(?, ?, ?, ?)";
 
-$user = "INSERT INTO `users`(
+$stmt = $connect->prepare($details_sql);
+$stmt->bind_param('isss', $id, $_POST['firstname'], $_POST['lastname'], $_POST['age']);
+$details_res = $stmt->execute();
+
+$user_sql = "INSERT INTO `users`(
     `id`,
     `username`,
     `password`,
@@ -94,32 +89,19 @@ $user = "INSERT INTO `users`(
     `contact_details_id`,
     `address_details_id`,
     `card_details_id`)
-    values(
-        '$id',
-        '$_POST[username]',
-        '$_POST[password]',
-        '$id',
-        '$id',
-        '$id',
-        '$id'
-        )";
+    values(?, ?, ?, ?, ?, ?, ?)";
 
-$address_res = mysqli_query($connect, $address);
-$card_res = mysqli_query($connect, $card);
-$contact_res = mysqli_query($connect, $contact);
-$details_res = mysqli_query($connect, $details);
-$user_res = mysqli_query($connect, $user);
+$stmt = $connect->prepare($user_sql);
+$stmt->bind_param('issiiii', $id, $_POST['username'], $_POST['password'], $id, $id, $id, $id);
+$user_res = $stmt->execute();
+$connect->close();
 
-if ($res) {
-    if ($address_res && $card_res && $contact_res && $details_res && $user_res) {
-        $msg = 'successfully';
-    } else {
-        $msg = 'failed';
-    }
+
+if ($address_res && $card_res && $contact_res && $details_res && $user_res) {
+    $msg = 'successfully';
 } else {
     $msg = 'failed';
 }
 
 $response['msg'] = $msg;
-
 echo json_encode($response);

@@ -1,14 +1,29 @@
 <script>
-    import checkLog from "../../scripts/checkLog";
+    import getSession from "../../scripts/getSession";
     import BigCarRow from "../components/BigCarRow.svelte";
     export let params;
 
     let clicked = false;
-    let setted = false;
     let correct = false;
     let start_date = "";
     let finish_date = "";
-    let logged, overdueReservationNumber;
+    let start_date_obj = new Date(start_date.replace(/-/g, "/"));
+    let finish_date_obj = new Date(finish_date.replace(/-/g, "/"));
+    let logged, overdueReservationNumber, user_type_id;
+    let price = 0;
+    let price_pre_day = 0;
+    let error, success;
+
+    let date_obj = new Date();
+
+    date_obj =
+        date_obj.getUTCFullYear() +
+        "/" +
+        (date_obj.getMonth() + 1) +
+        "/" +
+        date_obj.getUTCDate();
+
+    let today_date = new Date(date_obj.replace(/-/g, "/"));
 
     let names = {
         transmission: ["Skrzynia biegów", ""],
@@ -64,38 +79,56 @@
             names[key][1],
         ]);
 
+        price_pre_day = res.info.price;
+
         res.data.push(["Ilość rezerwacji", reservationNumber, ""]);
 
         return res;
     };
 
     let init = async () => {
-        if (await checkLog()) {
-            logged = true;
-        } else {
-            logged = false;
-        }
+        let res = await getSession(["logged", "user_type_id"]);
+        logged = res.logged;
+        user_type_id = res.user_type_id;
     };
 
     let checkSet = () => {
-        if (start_date !== "" && finish_date !== "") {
-            setted = true;
-        } else {
-            setted = false;
-        }
+        start_date_obj = new Date(start_date.replace(/-/g, "/"));
+        finish_date_obj = new Date(finish_date.replace(/-/g, "/"));
 
-        check();
+        if (start_date !== "" && finish_date !== "") {
+            check();
+        }
     };
 
     let check = () => {
-        if (setted) {
-            if (start_date > finish_date) {
-                document.getElementById("error").innerText = "Popraw daty";
-                correct = false;
-            } else {
-                document.getElementById("error").innerText = "";
-                correct = true;
-            }
+        if (start_date > finish_date) {
+            error = "Popraw daty";
+            correct = false;
+            price = 0;
+        } else if (
+            start_date_obj < today_date ||
+            finish_date_obj < today_date
+        ) {
+            error = "Popraw daty";
+            correct = false;
+            price = 0;
+        } else {
+            error = "";
+            correct = true;
+
+            let days =
+                Math.abs(
+                    new Date(finish_date.replace(/-/g, "/")) -
+                        new Date(start_date.replace(/-/g, "/"))
+                ) /
+                    1000 /
+                    60 /
+                    60 /
+                    24 +
+                1;
+
+            price = days * price_pre_day;
         }
     };
 
@@ -114,15 +147,14 @@
 
         res = await res.json();
 
+        console.log(res);
         if (res.msg === "successfully") {
-            document.getElementById("success").innerText =
-                "Dokonano rezerwacji";
+            success = "Dokonano rezerwację";
             setTimeout(() => {
                 window.location.replace("./#/user/reservstions");
             }, 1500);
         } else {
-            document.getElementById("error").innerText =
-                "Błąd rezerwacji. Spróbuj ponownie";
+            error = "Błąd składania rezerwacji. Spróbuj ponownie";
         }
     };
 
@@ -168,7 +200,7 @@
                             <p class="text-xs mt-3 text-red-600 text-right">
                                 Aby złożyć rezezwacje musisz być zalogowany
                             </p>
-                        {:else if overdueReservationNumber != 0}
+                        {:else if overdueReservationNumber != 0 && (user_type_id == 3 || user_type_id == 2)}
                             <button
                                 class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 rounded disabled:text-white disabled:opacity-50 pointer-events-none"
                                 disabled>Rezerwuj</button
@@ -219,15 +251,21 @@
                         </div>
                         <div class="flex mt-5">
                             <p
-                                id="error"
                                 class="text-xs mt-3 text-red-600 text-right"
+                                contenteditable="false"
+                                bind:textContent={error}
                             />
                             <p
-                                id="success"
                                 class="text-xs mt-3 text-green-600 text-right"
+                                contenteditable="false"
+                                bind:textContent={success}
                             />
                         </div>
                         <div class="flex mt-5">
+                            <span
+                                class="title-font font-medium text-2xl text-gray-900"
+                                >Należność: {price} zł</span
+                            >
                             <button
                                 class="flex ml-auto text-white bg-green-500 border-0 py-2 px-6 focus:outline-none hover:bg-green-600 rounded"
                                 on:click={() => {

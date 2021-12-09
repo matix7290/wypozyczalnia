@@ -12,6 +12,13 @@
 	import Login from "./routes/Login.svelte";
 	import BigCar from "./routes/BigCar.svelte";
 	import UserReservation from "./routes/user/UserReservation.svelte";
+	import ForbbiddenAccess from "./routes/ForbbiddenAccess.svelte";
+	import AdminPanel from "./routes/admin/AdminPanel.svelte";
+	import ActiveReservation from "./routes/admin/ActiveReservation.svelte";
+	import ArchiveReservation from "./routes/admin/ArchiveReservation.svelte";
+	import WaitingReservation from "./routes/admin/WaitingReservation.svelte";
+	import UserManager from "./routes/admin/UserManager.svelte";
+	import EditReservation from "./routes/admin/EditReservation.svelte";
 </script>
 
 <Tailwindcss />
@@ -28,6 +35,13 @@
 		"/login": Login,
 		"/car/:id": BigCar,
 		"/user/reservstions": UserReservation,
+		"/forbbidden": ForbbiddenAccess,
+		"/admin": AdminPanel,
+		"/admin/reservation/active": ActiveReservation,
+		"/admin/reservation/archive": ArchiveReservation,
+		"/admin/reservation/waiting": WaitingReservation,
+		"/admin/reservation/edit/:id": EditReservation,
+		"/admin/users": UserManager,
 		"*": NotFound,
 	}}
 />

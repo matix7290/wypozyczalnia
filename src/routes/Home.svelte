@@ -27,15 +27,12 @@
             res = await res.json();
         }
     }
+
+    document.onload = loaded();
 </script>
 
-<div id="home" on:load={loaded()}>
-    <h1>Home</h1>
-</div>
-
-<style>
-    #home {
-        font-size: 50px;
-        text-align: center;
-    }
-</style>
+<section class="h-2/3">
+    <div class="container w-auto h-full my-auto mx-auto flex">
+        <h1 class="my-auto mx-auto text-5xl">Home</h1>
+    </div>
+</section>

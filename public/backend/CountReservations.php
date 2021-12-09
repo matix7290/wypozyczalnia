@@ -3,9 +3,17 @@ require_once('DB.php');
 
 $sql = "SELECT COUNT(*)
         FROM reservation
-        WHERE `car_id` = $_POST[id];";
+        WHERE `car_id` = ?";
 
-$result = mysqli_query($connect, $sql);
-$response = mysqli_fetch_assoc($result)['COUNT(*)'];
+if (isset($_POST['id'])) {
+        $stmt = $connect->prepare($sql);
+        $stmt->bind_param("i", $_POST['id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $response = $result->fetch_all(MYSQLI_ASSOC)[0]['COUNT(*)'];
+        $connect->close();
+} else {
+        $response = 'fail';
+}
 
 echo json_encode($response);
