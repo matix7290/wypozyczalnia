@@ -20,8 +20,8 @@ cd svelte-app
 
 Add database...
 
-```bash
-from db/car-sharing.sql
+```mysql
+create database car-sharing
 ```
 
 ...and set its details
