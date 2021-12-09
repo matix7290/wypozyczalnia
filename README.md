@@ -18,14 +18,18 @@ cd svelte-app
 
 ## Get started
 
-Install the dependencies...
+Add database from db/car-sharing.sql...
+
+...and set its details in public/backend/DB.php file... 
+
+...then install the dependencies...
 
 ```bash
 cd svelte-app
 npm install
 ```
 
-...then start [Rollup](https://rollupjs.org):
+...and finally start [Rollup](https://rollupjs.org):
 
 ```bash
 npm run dev
