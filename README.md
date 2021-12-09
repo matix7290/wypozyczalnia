@@ -21,13 +21,18 @@ cd svelte-app
 Add database...
 
 ```mysql
-create database car-sharing
+create database 'car-sharing'
 ```
 
-...and set its details
+...and set its details in...
 
-```bash
-in public/backend/DB.php file
+```xpath
+./public/backend/DB.php
+``` 
+...import data from...
+
+```xpath
+./db/car-sharing.sql
 ``` 
 
 ...then install the dependencies...
